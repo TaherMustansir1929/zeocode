@@ -2,6 +2,7 @@ import {
 	createContext,
 	useCallback,
 	useContext,
+	useEffect,
 	useRef,
 	useState,
 	type ReactNode,
@@ -45,6 +46,13 @@ export function ToastProvider({ children }: ToastProviderProps) {
 		}
 	}, []);
 
+	// Cleanup timeout on unmount
+	useEffect(() => {
+		return () => {
+			clearCurrentTimeout();
+		};
+	}, [clearCurrentTimeout]);
+
 	const show = useCallback(
 		(options: ToastOptions) => {
 			const duration = options.duration ?? DEFAULT_DURATION;
@@ -52,7 +60,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
 			clearCurrentTimeout();
 
 			setCurrentToast({
-				varaint: options.variant ?? "info",
+				variant: options.variant ?? "info",
 				...options,
 				duration,
 			});

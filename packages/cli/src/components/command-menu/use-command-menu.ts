@@ -48,10 +48,12 @@ export function useCommandMenu(): UseCommandMenuReturn {
 		const prefix = text.startsWith("/") ? text.slice(1) : null;
 		if (prefix !== null && !prefix.includes(" ")) {
 			setShowCommandMenu(true);
-			push("command", () => {
-				close();
-				return true;
-			});
+			if (!isTopLayer("command")) {
+				push("command", () => {
+					close();
+					return true;
+				});
+			}
 		} else {
 			close();
 		}

@@ -78,6 +78,7 @@ export function DialogSearchList<T>({
 			});
 		} else if (key.name === "down") {
 			setSelectedIndex((i) => {
+				if (filtered.length === 0) return i;
 				const newIndex = Math.min(filtered.length - 1, i + 1);
 				const sb = scrollRef.current;
 				if (sb) {
