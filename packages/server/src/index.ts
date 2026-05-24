@@ -9,7 +9,7 @@ app.onError((err, c) => {
 		return c.json({ error: err.message || "Request failed" }, err.status);
 	}
 
-	console.log("Unhandled server error", err);
+	console.error("Unhandled server error", err);
 	return c.json({ error: "Internal Server Error" }, 500);
 });
 

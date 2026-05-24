@@ -23,7 +23,7 @@ export function NewSession() {
 		return parsed.success ? parsed.data : null;
 	}, [location.state]);
 
-	// Gaurd: if navigated here without state, redirect back to home
+	// Guard: if navigated here without state, redirect back to home
 	useEffect(() => {
 		if (!state) {
 			navigate("/", { replace: true });
