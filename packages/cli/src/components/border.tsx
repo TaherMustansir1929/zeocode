@@ -15,4 +15,5 @@ export const EmptyBorder = {
 export const SplitBorderChars = {
 	...EmptyBorder,
 	vertical: "┃",
+	bottomLeft: "╹",
 };
