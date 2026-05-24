@@ -42,11 +42,17 @@ export function Session() {
 		return parsed.success ? parsed.data.session : null;
 	}, [location.state]);
 
-	const [session, setSession] = useState<SessionData | null>(prefetched);
+	const prefetchedForRoute = prefetched?.id === id ? prefetched : null;
+	const [session, setSession] = useState<SessionData | null>(
+		prefetchedForRoute,
+	);
 
 	useEffect(() => {
-		// skip fetch if session was passed via location.state
-		if (prefetched) return;
+		// use prefetched session only when it matches the current route id
+		if (prefetchedForRoute) {
+			setSession(prefetchedForRoute);
+			return;
+		}
 
 		setSession(null);
 
@@ -79,7 +85,7 @@ export function Session() {
 		return () => {
 			ignore = true;
 		};
-	}, [prefetched, id, navigate, toast]);
+	}, [prefetchedForRoute, id, navigate, toast]);
 
 	if (!session) {
 		return <SessionShell onSubmit={() => {}} inputDisabled loading />;

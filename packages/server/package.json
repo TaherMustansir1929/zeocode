@@ -1,7 +1,7 @@
 {
 	"name": "@zeocode/server",
 	"type": "module",
-	"private": "true",
+	"private": true,
 	"exports": {
 		".": "./src/index.ts"
 	},
