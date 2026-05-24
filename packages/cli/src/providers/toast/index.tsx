@@ -1,20 +1,21 @@
+import { useTerminalDimensions } from "@opentui/react";
 import {
 	createContext,
+	type ReactNode,
 	useCallback,
 	useContext,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
-	type ReactNode,
 } from "react";
+import { SplitBorderChars } from "../../components/border";
+import { useTheme } from "../theme";
 import {
 	DEFAULT_DURATION,
 	type ToastOptions,
 	type ToastVariant,
 } from "./types";
-import { useTerminalDimensions } from "@opentui/react";
-import { SplitBorderChars } from "../../components/border";
-import { useTheme } from "../theme";
 
 export type ToastContextValue = {
 	show: (options: ToastOptions) => void;
@@ -72,9 +73,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
 		[clearCurrentTimeout],
 	);
 
-	const value: ToastContextValue = {
-		show,
-	};
+	const value: ToastContextValue = useMemo(() => ({ show }), [show]);
 
 	return (
 		<ToastConext.Provider value={value}>

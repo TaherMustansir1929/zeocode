@@ -1,5 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
-import { db } from "@zeocode/database";
+import { db } from "@zeocode/database/client";
 import { MessageStatus, Mode, Role } from "@zeocode/database/enums";
 import { findSupportedChatModel } from "@zeocode/shared";
 import { Hono } from "hono";
