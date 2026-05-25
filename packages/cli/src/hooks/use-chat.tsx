@@ -165,8 +165,19 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
 
 			const parts: ClientMessagePart[] = [];
 
-			const stream = response
-				.body!.pipeThrough(new TextDecoderStream())
+			if (!response.body) {
+				updateMessages((prev) => [
+					...prev,
+					{
+						id: crypto.randomUUID(),
+						role: "error",
+						content: "Empty streaming response body",
+					},
+				]);
+				return;
+			}
+			const stream = response.body
+				.pipeThrough(new TextDecoderStream())
 				.pipeThrough(new EventSourceParserStream());
 
 			for await (const { data } of stream) {

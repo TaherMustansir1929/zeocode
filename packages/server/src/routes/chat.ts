@@ -262,8 +262,9 @@ const app = new Hono()
 			},
 		});
 
+		const recentMessages = session.messages.slice(-10);
 		const history = buildConversationHistory([
-			...session.messages, // TODO: limit to 5-10 messages in production
+			...recentMessages,
 			{
 				role: "USER" as const,
 				content: data.content,

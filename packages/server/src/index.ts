@@ -17,15 +17,17 @@ app.use(
 	}),
 );
 
-app.get("/debug-sentry", () => {
-	// Send a log before throwing the error
-	Sentry.logger.info("User triggered test error", {
-		action: "test_error_endpoint",
+if (process.env.NODE_ENV !== "production") {
+	app.get("/debug-sentry", () => {
+		// Send a log before throwing the error
+		Sentry.logger.info("User triggered test error", {
+			action: "test_error_endpoint",
+		});
+		// Send a test metric before throwing the error
+		Sentry.metrics.count("test_counter", 1);
+		throw new Error("My first Sentry error!");
 	});
-	// Send a test metric before throwing the error
-	Sentry.metrics.count("test_counter", 1);
-	throw new Error("My first Sentry error!");
-});
+}
 
 app.onError((err, c) => {
 	if (err instanceof HTTPException) {
