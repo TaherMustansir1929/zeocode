@@ -1,7 +1,7 @@
 import type { Mode } from "@zeocode/database/enums";
 import {
-    chatStreamEventSchema,
-    type SupportedChatModelId,
+	chatStreamEventSchema,
+	type SupportedChatModelId,
 } from "@zeocode/shared";
 import { EventSourceParserStream } from "eventsource-parser/stream";
 import type { ClientResponse } from "hono/client";
@@ -11,7 +11,19 @@ import type { z } from "zod";
 import { apiClient } from "../lib/api-client";
 import { getErrorMessage } from "../lib/http-errors";
 
-export type ClientMessagePart = { type: "text"; text: string };
+export type ClientToolCallPart = {
+	type: "tool-call";
+	id: string;
+	name: string;
+	args: Record<string, unknown>;
+	result?: string;
+	status: "calling" | "done";
+};
+
+export type ClientMessagePart =
+	| { type: "text"; text: string }
+	| ClientToolCallPart
+	| { type: "reasoning"; text: string };
 
 export type Message =
 	| {
@@ -196,6 +208,40 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
 				}
 
 				switch (event.type) {
+					case "reasoning-delta": {
+						const last = parts[parts.length - 1];
+						if (last && last.type === "reasoning") {
+							last.text += event.text;
+						} else {
+							parts.push({ type: "reasoning", text: event.text });
+						}
+
+						emitParts(activeStream.requestId, parts);
+						break;
+					}
+					case "tool-call": {
+						parts.push({
+							type: "tool-call",
+							id: event.toolCallId,
+							name: event.toolName,
+							args: event.args,
+							status: "calling",
+						});
+						emitParts(activeStream.requestId, parts);
+						break;
+					}
+					case "tool-result": {
+						const toolCall = parts.find(
+							(p): p is ClientToolCallPart =>
+								p.type === "tool-call" && p.id === event.toolCallId,
+						);
+						if (toolCall) {
+							toolCall.result = event.result;
+							toolCall.status = "done";
+						}
+						emitParts(activeStream.requestId, parts);
+						break;
+					}
 					case "text-delta": {
 						const last = parts[parts.length - 1];
 						if (last && last.type === "text") {
