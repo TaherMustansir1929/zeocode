@@ -2,98 +2,108 @@ import { Hono } from "hono";
 // import { HTTPException } from "hono/http-exception";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { db } from "@zeocode/database/client";
-import { Role, Mode, MessageStatus } from "@zeocode/database/enums";
-import { findSupportedChatModel } from "@zeocode/shared";
+import { db } from "@nightcode/database/client";
+import { Role, Mode, MessageStatus } from "@nightcode/database/enums";
+import { findSupportedChatModel } from "@nightcode/shared";
+import type { AuthenticatedEnv } from "../middleware/require-auth";
 
 const createSessionSchema = z.object({
-  title: z.string(),
-  cwd: z.string().optional(),
-  initialMessage: z
-    .object({
-      role: z.enum(Role),
-      content: z.string(),
-      mode: z.enum(Mode),
-      model: z.string()
-        .refine((id) => !!findSupportedChatModel(id), "Unsupported model"),
-    })
-    .optional(),
+	title: z.string(),
+	cwd: z.string().optional(),
+	initialMessage: z
+		.object({
+			role: z.enum(Role),
+			content: z.string(),
+			mode: z.enum(Mode),
+			model: z
+				.string()
+				.refine((id) => !!findSupportedChatModel(id), "Unsupported model"),
+		})
+		.optional(),
 });
 
 const createSessionValidator = zValidator(
-  "json", createSessionSchema, (result, c) => {
-  if (!result.success) {
-    return c.json({ error: "Invalid request body" }, 400);
-  }
-});
+	"json",
+	createSessionSchema,
+	(result, c) => {
+		if (!result.success) {
+			return c.json({ error: "Invalid request body" }, 400);
+		}
+	},
+);
 
-const app = new Hono()
-  .get("/", async (c) => {
-    const sessions = await db.session.findMany({
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        title: true,
-        createdAt: true,
-      },
-    });
+const app = new Hono<AuthenticatedEnv>()
+	.get("/", async (c) => {
+		const userId = c.get("userId");
 
-    return c.json(sessions);
-  })
-  .get("/:id", async (c) => {
-    // MOCK: Uncomment to simulate slow session loading
-    // await new Promise((r) => setTimeout(r, 5000))
+		const sessions = await db.session.findMany({
+			where: { userId },
+			orderBy: { createdAt: "desc" },
+			select: {
+				id: true,
+				title: true,
+				createdAt: true,
+			},
+		});
 
-    // MOCK: Uncomment to simulate session loading error
-    // throw new HTTPException(
-    //   500, 
-    //   { message: "Mock error: session loading failed" }
-    // )
+		return c.json(sessions);
+	})
+	.get("/:id", async (c) => {
+		// MOCK: Uncomment to simulate slow session loading
+		// await new Promise((r) => setTimeout(r, 5000))
 
-    const id = c.req.param("id");
-    
-    const session = await db.session.findUnique({
-      where: { id },
-      include: {
-        messages: { orderBy: { createdAt: "asc" } },
-      },
-    });
+		// MOCK: Uncomment to simulate session loading error
+		// throw new HTTPException(
+		//   500,
+		//   { message: "Mock error: session loading failed" }
+		// )
 
-    if (!session) {
-      return c.json({ error: "Session not found" }, 404);
-    }
+		const id = c.req.param("id");
+		const userId = c.get("userId");
 
-    return c.json(session);
-  })
-  .post("/", createSessionValidator, async (c) => {
-    // MOCK: Uncomment to simulate slow session loading
-    // await new Promise((r) => setTimeout(r, 5000))
+		const session = await db.session.findUnique({
+			where: { id, userId },
+			include: {
+				messages: { orderBy: { createdAt: "asc" } },
+			},
+		});
 
-    // MOCK: Uncomment to simulate session loading error
-    // throw new HTTPException(
-    //   500, 
-    //   { message: "Mock error: session loading failed" }
-    // )
+		if (!session) {
+			return c.json({ error: "Session not found" }, 404);
+		}
 
-    const { initialMessage, ...data } = c.req.valid("json");
+		return c.json(session);
+	})
+	.post("/", createSessionValidator, async (c) => {
+		// MOCK: Uncomment to simulate slow session loading
+		// await new Promise((r) => setTimeout(r, 5000))
 
-    const session = await db.session.create({
-      data: {
-        ...data,
-        userId: "mock-user",
-        ...(initialMessage && {
-          messages: {
-            create: {
-              ...initialMessage,
-              status: MessageStatus.COMPLETED,
-            },
-          },
-        })
-      },
-      include: { messages: true },
-    });
+		// MOCK: Uncomment to simulate session loading error
+		// throw new HTTPException(
+		//   500,
+		//   { message: "Mock error: session loading failed" }
+		// )
 
-    return c.json(session, 201);
-  });
+		const userId = c.get("userId");
+		const { initialMessage, ...data } = c.req.valid("json");
+
+		const session = await db.session.create({
+			data: {
+				...data,
+				userId,
+				...(initialMessage && {
+					messages: {
+						create: {
+							...initialMessage,
+							status: MessageStatus.COMPLETED,
+						},
+					},
+				}),
+			},
+			include: { messages: true },
+		});
+
+		return c.json(session, 201);
+	});
 
 export default app;
