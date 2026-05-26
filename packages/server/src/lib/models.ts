@@ -1,15 +1,17 @@
 import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
 import { openai } from "@ai-sdk/openai";
 import {
-  findSupportedChatModel,
-  type SupportedChatModel,
-  type SupportedChatModelId,
-  type SupportedProvider,
+    findSupportedChatModel,
+    type SupportedChatModel,
+    type SupportedChatModelId,
+    type SupportedProvider,
 } from "@zeocode/shared";
 import type { LanguageModel } from "ai";
 
 type AnthropicModelId = Extract<SupportedChatModel, { provider: "anthropic" }>["id"];
 type OpenAIModelId = Extract<SupportedChatModel, { provider: "openai" }>["id"];
+type GoogleModelId = Extract<SupportedChatModel, { provider: "google" }>["id"];
 
 export type ResolvedModel = {
   model: LanguageModel;
@@ -17,7 +19,7 @@ export type ResolvedModel = {
   modelId: SupportedChatModelId;
 };
 
-function assertUnsupportedProvider(provider: never): never {
+function assertUnsupportedProvider(provider: string): never {
   throw new Error(`Unsupported provider: ${provider}`);
 };
 
@@ -37,10 +39,20 @@ function resolveOpenAIModel(modelId: OpenAIModelId): ResolvedModel {
   };
 };
 
+function resolveGoogleModel(modelId: GoogleModelId): ResolvedModel {
+  return {
+    model: google(modelId),
+    provider: "google",
+    modelId,
+  };
+}
+
 function resolveSupportedChatModel(model: SupportedChatModel): ResolvedModel {
   const provider = model.provider;
 
   switch (provider) {
+    case "google":
+      return resolveGoogleModel(model.id);
     case "anthropic":
       return resolveAnthropicModel(model.id);
     case "openai":

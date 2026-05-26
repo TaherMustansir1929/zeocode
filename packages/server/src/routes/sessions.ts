@@ -85,7 +85,7 @@ const app = new Hono()
           messages: {
             create: {
               ...initialMessage,
-              status: MessageStatus.COMPLETE,
+              status: MessageStatus.COMPLETED,
             },
           },
         })
