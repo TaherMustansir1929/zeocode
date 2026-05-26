@@ -8,6 +8,8 @@ import { streamSSE } from "hono/streaming";
 import { z } from "zod";
 import { isSupportedChatModel, resolveChatModel } from "../lib/models";
 
+const MAX_HISTORY_MESSAGES = 10;
+
 const submitSchema = z.object({
 	content: z.string(),
 	mode: z.enum(Mode),
@@ -271,7 +273,7 @@ const app = new Hono()
 		});
 
 		const history = buildConversationHistory([
-			...session.messages, // TODO: limit to last 10, 5 messages?
+			...session.messages.slice(-MAX_HISTORY_MESSAGES),
 			{
 				role: "USER" as const,
 				content: data.content,
