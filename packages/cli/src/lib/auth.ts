@@ -1,4 +1,5 @@
 import {
+	chmodSync,
 	existsSync,
 	mkdirSync,
 	readFileSync,
@@ -31,12 +32,20 @@ export function saveAuth(data: AuthData) {
 		mkdirSync(AUTH_DIR, { mode: 0o700 });
 	}
 	writeFileSync(AUTH_FILE, JSON.stringify(data), { mode: 0o600 });
+	chmodSync(AUTH_FILE, 0o600);
 }
 
 export function clearAuth() {
 	try {
 		unlinkSync(AUTH_FILE);
-	} catch {
+	} catch (error) {
 		// File doesn't exist
+		if (
+			!(error instanceof Error) ||
+			!("code" in error) ||
+			(error as NodeJS.ErrnoException).code !== "ENOENT"
+		) {
+			throw error;
+		}
 	}
 }

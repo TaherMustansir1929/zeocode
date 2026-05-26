@@ -1,4 +1,4 @@
-import type { AppType } from "@nightcode/server";
+import type { AppType } from "@zeocode/server";
 import { hc } from "hono/client";
 import { clearAuth, getAuth } from "./auth";
 

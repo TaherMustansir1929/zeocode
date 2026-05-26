@@ -154,7 +154,13 @@ export async function performLogin() {
 		authorizeUrl.searchParams.set("code_challenge", codeChallenge);
 		authorizeUrl.searchParams.set("code_challenge_method", "S256");
 
-		void open(authorizeUrl.toString());
+		void open(authorizeUrl.toString()).catch((err) => {
+			if (!settled) {
+				settled = true;
+				server.stop();
+				reject(new Error(`Failed to open browser: ${getErrorMessage(err)}`));
+			}
+		});
 
 		setTimeout(() => {
 			if (!settled) {
