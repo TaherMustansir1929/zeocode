@@ -13,8 +13,9 @@ import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { z } from "zod";
 import { isSupportedChatModel, resolveChatModel } from "../lib/models";
-import { createTools } from "../tools";
 import { buildSystemPrompt } from "../system-prompt";
+import { createTools } from "../tools";
+import type { AuthenticatedEnv } from "../middleware/require-auth";
 
 const MAX_HISTORY_MESSAGES = 10;
 
@@ -276,12 +277,13 @@ async function streamAIResponse(
 	}
 }
 
-const app = new Hono()
+const app = new Hono<AuthenticatedEnv>()
 	.post("/:sessionId/resume", async (c) => {
 		const sessionId = c.req.param("sessionId");
+		const userId = c.get("userId");
 
 		const session = await db.session.findUnique({
-			where: { id: sessionId },
+			where: { id: sessionId, userId },
 			include: { messages: { orderBy: { createdAt: "asc" } } },
 		});
 
@@ -358,9 +360,10 @@ const app = new Hono()
 	})
 	.post("/:sessionId", submitValidator, async (c) => {
 		const sessionId = c.req.param("sessionId");
+		const userId = c.get("userId");
 
 		const session = await db.session.findUnique({
-			where: { id: sessionId },
+			where: { id: sessionId, userId },
 			include: { messages: { orderBy: { createdAt: "asc" } } },
 		});
 
