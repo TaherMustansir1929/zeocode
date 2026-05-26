@@ -8,6 +8,8 @@ import { streamSSE } from "hono/streaming";
 import { z } from "zod";
 import { isSupportedChatModel, resolveChatModel } from "../lib/models";
 
+const MAX_HISTORY_MESSAGES = 10;
+
 const submitSchema = z.object({
 	content: z.string(),
 	mode: z.enum(Mode),
@@ -22,10 +24,10 @@ const submitValidator = zValidator("json", submitSchema, (result, c) => {
 
 const activeResumeSessionIds = new Set<string>();
 
-// Strip error messages and empty assistant messages from the conversation history
+// Strip error messages and empty assistant messages from the conversation
 function buildConversationHistory(
 	messages: {
-		role: "USER" | "ERROR" | "ASSISTANT";
+		role: "USER" | "ASSISTANT" | "ERROR";
 		content: string;
 		status: MessageStatus;
 	}[],
@@ -44,13 +46,15 @@ function buildConversationHistory(
 
 function getResumableUserMessage(
 	messages: {
-		role: "USER" | "ERROR" | "ASSISTANT";
+		role: "USER" | "ASSISTANT" | "ERROR";
 		model: string;
 		mode: Mode;
 	}[],
 ) {
 	const lastMessage = messages[messages.length - 1];
-	if (!lastMessage || lastMessage.role !== "USER") return null;
+	if (!lastMessage || lastMessage.role !== "USER") {
+		return null;
+	}
 
 	return lastMessage;
 }
@@ -178,23 +182,29 @@ const app = new Hono()
 		}
 
 		const resumableMessage = getResumableUserMessage(session.messages);
-
 		if (!resumableMessage) {
 			return c.json(
 				{ error: "Session has no pending user message to resume" },
-				400,
+				409,
 			);
 		}
 
 		if (!isSupportedChatModel(resumableMessage.model)) {
 			return c.json(
-				{ error: `Session uses unsupported model: ${resumableMessage.model}` },
+				{
+					error: `Session uses unsupported model: ${resumableMessage.model}`,
+				},
 				409,
 			);
 		}
 
 		if (activeResumeSessionIds.has(sessionId)) {
-			return c.json({ error: "Session already has an active resume" }, 409);
+			return c.json(
+				{
+					error: "Session already has an active resume",
+				},
+				409,
+			);
 		}
 
 		activeResumeSessionIds.add(sessionId);
@@ -232,9 +242,9 @@ const app = new Hono()
 					});
 				},
 			);
-		} catch (err) {
+		} catch (error) {
 			activeResumeSessionIds.delete(sessionId);
-			throw err;
+			throw error;
 		}
 	})
 	.post("/:sessionId", submitValidator, async (c) => {
@@ -262,9 +272,8 @@ const app = new Hono()
 			},
 		});
 
-		const recentMessages = session.messages.slice(-10);
 		const history = buildConversationHistory([
-			...recentMessages,
+			...session.messages.slice(-MAX_HISTORY_MESSAGES),
 			{
 				role: "USER" as const,
 				content: data.content,

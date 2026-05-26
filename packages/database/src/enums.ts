@@ -1,1 +1,1 @@
-export { MessageStatus, Mode, Role } from "../generated/prisma/client.ts";
+export { Role, Mode, MessageStatus } from "../generated/prisma/enums";

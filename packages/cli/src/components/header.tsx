@@ -1,15 +1,10 @@
 export function Header() {
-	return (
-		<box justifyContent="center" alignItems="center">
-			<box
-				flexDirection="row"
-				justifyContent="center"
-				alignItems="center"
-				gap={0.5}
-			>
-				<ascii-font font="tiny" color="grey" text="Zeo" />
-				<ascii-font font="tiny" text="Code" />
-			</box>
-		</box>
-	);
-}
+  return (
+    <box justifyContent="center" alignItems="center">
+      <box flexDirection="row" justifyContent="center" gap={0.5} alignItems="center">
+        <ascii-font font="tiny" text="Zeo" color="gray" />
+        <ascii-font font="tiny" text="Code" />
+      </box>
+    </box>
+  );
+};
