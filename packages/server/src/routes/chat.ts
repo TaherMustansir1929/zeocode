@@ -77,6 +77,23 @@ type StreamParams = {
 	abortController: AbortController;
 };
 
+/**
+ * Streams a model-generated assistant response to the client via SSE and persists streamed message parts to the database.
+ *
+ * This function forwards model reasoning, text deltas, tool call/result events, and terminal statuses to the provided SSE
+ * stream while incrementally recording message parts. If the stream or provided abort signal is triggered, it saves an
+ * interrupted assistant message with whatever parts have been produced. On normal completion it saves a completed assistant
+ * message and emits a final `done` event; on error it saves an error message and emits an `error` event.
+ *
+ * @param stream - The SSE stream handler used to write events and observe aborts.
+ * @param params - Parameters controlling the stream and persistence:
+ *   - sessionId: session identifier for persisted messages
+ *   - model: the chat model to use
+ *   - cwd: optional working directory used to construct tools
+ *   - history: conversation history passed to the model
+ *   - mode: conversational mode affecting prompts/tools
+ *   - abortController: controller whose signal cancels generation and triggers interruption persistence
+ */
 async function streamAIResponse(
 	stream: Parameters<Parameters<typeof streamSSE>[1]>[0],
 	params: StreamParams,
