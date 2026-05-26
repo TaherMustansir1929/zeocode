@@ -33,24 +33,26 @@ export function useCommandMenu(): UseCommandMenuReturn {
 
   const handleContentChange = (text: string) => {
     setTextValue(text);
-    setSelectedIndex(0);
+				setSelectedIndex(0);
 
-    // Jump back to the top of the list when the user types a new character
-    const scrollbox = scrollRef.current;
-    if (scrollbox) {
-      scrollbox.scrollTo(0);
-    }
+				// Jump back to the top of the list when the user types a new character
+				const scrollbox = scrollRef.current;
+				if (scrollbox) {
+					scrollbox.scrollTo(0);
+				}
 
-    const prefix = text.startsWith("/") ? text.slice(1) : null;
-    if (prefix !== null && !prefix.includes(" ")) {
-      setShowCommandMenu(true);
-      push("command", () => {
-        close();
-        return true;
-      });
-    } else {
-      close();
-    }
+				const prefix = text.startsWith("/") ? text.slice(1) : null;
+				if (prefix !== null && !prefix.includes(" ")) {
+					setShowCommandMenu(true);
+					if (!isTopLayer("command")) {
+						push("command", () => {
+							close();
+							return true;
+						});
+					}
+				} else {
+					close();
+				}
   };
 
   // Resolve a command at a specific index (returns the command, caller handles execution)

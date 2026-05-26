@@ -1,23 +1,23 @@
-import { useState, useEffect, useMemo } from "react";
-import { useParams, useLocation, useNavigate } from "react-router";
-import { z } from "zod";
 import { useKeyboard } from "@opentui/react";
-import prettyMs from "pretty-ms";
+import { MessageStatus } from "@zeocode/database/enums";
 import { DEFAULT_CHAT_MODEL_ID, type SupportedChatModelId } from "@zeocode/shared";
 import type { InferResponseType } from "hono/client";
-import { SessionShell } from "../components/session-shell";
-import { 
-  UserMessage, 
-  BotMessage, 
-  ErrorMessage
+import prettyMs from "pretty-ms";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router";
+import { z } from "zod";
+import {
+    BotMessage,
+    ErrorMessage,
+    UserMessage
 } from "../components/messages";
-import { useToast } from "../providers/toast";
+import { SessionShell } from "../components/session-shell";
+import type { Message } from "../hooks/use-chat";
 import { useChat } from "../hooks/use-chat";
-import type { Message, ClientMessagePart } from "../hooks/use-chat";
 import { apiClient } from "../lib/api-client";
 import { getErrorMessage } from "../lib/http-errors";
-import { MessageStatus } from "@zeocode/database/enums";
 import { useKeyboardLayer } from "../providers/keyboard-layer";
+import { useToast } from "../providers/toast";
 
 type SessionData = InferResponseType<(typeof apiClient.sessions)[":id"]["$get"], 200>;
 
@@ -131,11 +131,14 @@ export function Session() {
     return parsed.success ? parsed.data.session : null;
   }, [location.state]);
 
-  const [session, setSession] = useState<SessionData | null>(prefetched);
+  const [session, setSession] = useState<SessionData | null>(null);
 
   useEffect(() => {
-    // Skip fetch if session was passed via location state
-    if (prefetched) return;
+    // Use prefetched only when it matches the current route
+    if (prefetched && prefetched.id === id) {
+      setSession(prefetched);
+      return;
+    }
 
     setSession(null);
 
