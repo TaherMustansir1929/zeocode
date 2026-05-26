@@ -45,6 +45,12 @@ type MentionCandidate = {
 	kind: "file" | "directory";
 };
 
+/**
+ * Determines whether a given path resolves inside the current working directory subtree.
+ *
+ * @param targetPath - Path to test (absolute or relative)
+ * @returns `true` if `targetPath` resolves to the current working directory or a descendant of it, `false` otherwise.
+ */
 function isWithinCurrentDirectory(targetPath: string) {
 	const relativePath = relative(CURRENT_DIRECTORY, targetPath);
 	return (
@@ -53,10 +59,27 @@ function isWithinCurrentDirectory(targetPath: string) {
 	);
 }
 
+/**
+ * Checks whether a character is allowed inside a mention query.
+ *
+ * @param character - The single-character string to test
+ * @returns `true` if the character matches the mention-query character set, `false` otherwise
+ */
 function isMentionQueryCharacter(character: string) {
 	return MENTION_QUERY_CHARACTER.test(character);
 }
 
+/**
+ * Locate an active `@` mention at or around the given cursor and return its span and query.
+ *
+ * Finds a token delimited by whitespace around `cursorOffset`, locates the last `@` inside that token
+ * whose preceding character (if any) is whitespace, and extends the mention forward while characters
+ * match the mention query character set.
+ *
+ * @param text - The full text to search
+ * @param cursorOffset - The cursor index within `text` to anchor the search
+ * @returns A `MentionMatch` with `start`, `end`, and the `query` (text after `@`), or `null` if no valid mention is found
+ */
 function findActiveMention(
 	text: string,
 	cursorOffset: number,
@@ -105,6 +128,14 @@ function findActiveMention(
 	};
 }
 
+/**
+ * Build file and directory mention candidates for a given query relative to the current working directory.
+ *
+ * Attempts a direct directory lookup for the query (supporting an optional trailing `/`), and when necessary performs a limited recursive search from the repository root to find matching file and folder names. Hidden entries (names starting with `.`) are included only when the query begins with `.`. Absolute paths are rejected.
+ *
+ * @param query - The raw mention query text following `@` (may start with `./`; absolute paths like `/…` are ignored). A trailing `/` forces directory-only matching within the specified directory.
+ * @returns An array of matching mention candidates where `path` is a repository-relative path (directory paths end with `/`) and `kind` is `"file"` or `"directory"`. Returns an empty array on error, when the query targets outside the current directory, or when no matches are found.
+ */
 async function getMentionCandidates(
 	query: string,
 ): Promise<MentionCandidate[]> {
@@ -233,6 +264,16 @@ type FileMentionMenuProps = {
 	onExecute: (index: number) => void;
 };
 
+/**
+ * Render a scrollable list of file and folder mention candidates with mouse interaction and selection highlighting.
+ *
+ * @param candidates - Array of mention candidates; each item must include a `path` and `kind` (`"file"` or `"directory"`).
+ * @param selectedIndex - Index of the currently highlighted candidate.
+ * @param scrollRef - Ref attached to the scrollbox for programmatic scrolling.
+ * @param onSelect - Called with an index when a row is hovered to update the highlighted candidate.
+ * @param onExecute - Called with an index when a row is activated (mouse down) to perform insertion/execution.
+ * @returns A JSX element that displays the candidates (or a dimmed "No matching files or folders" message when empty).
+ */
 function FileMentionMenu({
 	candidates,
 	selectedIndex,
@@ -299,6 +340,16 @@ export const TEXTAREA_KEY_BINDINGS: KeyBinding[] = [
 	{ name: "enter", shift: true, action: "newline" },
 ];
 
+/**
+ * Render the chat input bar with command palette and filesystem-backed `@` mention support.
+ *
+ * The component manages textarea state, keyboard layers, command menu, and a file/folder mention dropdown
+ * that discovers candidates relative to the current working directory and inserts selected paths into the text.
+ *
+ * @param props.onSubmit - Callback invoked with the trimmed text when the user submits the input.
+ * @param props.disabled - When true, user interaction is disabled and keyboard handlers are suppressed. Defaults to `false`.
+ * @returns The rendered input bar React element.
+ */
 export function InputBar({ onSubmit, disabled = false }: Props) {
 	const textareaRef = useRef<TextareaRenderable>(null);
 	const onSubmitRef = useRef<() => void>(() => {});

@@ -8,10 +8,22 @@ type OAuthState = {
 	port: number;
 };
 
+/**
+ * Encode the given data to a Base64URL string.
+ *
+ * @param input - The input data to encode, either a `string` or a `Uint8Array`.
+ * @returns The Base64URL-encoded representation of `input`
+ */
 function toBase64Url(input: Uint8Array | string) {
 	return Buffer.from(input).toString("base64url");
 }
 
+/**
+ * Create a PKCE SHA-256 code challenge from a code verifier.
+ *
+ * @param verifier - The plain code verifier string
+ * @returns The code challenge derived from `verifier`, encoded as a Base64URL string
+ */
 async function createPkceChallenge(verifier: string) {
 	const digest = await crypto.subtle.digest(
 		"SHA-256",
@@ -20,10 +32,24 @@ async function createPkceChallenge(verifier: string) {
 	return toBase64Url(new Uint8Array(digest));
 }
 
+/**
+ * Encode an OAuth state object as a Base64URL string suitable for use in the OAuth `state` parameter.
+ *
+ * @param state - The state payload containing `nonce` and `port`
+ * @returns The JSON-stringified `state` encoded as a Base64URL string
+ */
 function encodeState(state: OAuthState) {
 	return toBase64Url(JSON.stringify(state));
 }
 
+/**
+ * Decode a Base64URL-encoded OAuth state string and return its parsed payload.
+ *
+ * @param state - The encoded state string (may contain dot-separated segments); the first segment is decoded.
+ * @returns The parsed `OAuthState` object with `nonce` and `port`.
+ * @throws Error("Invalid state") if the encoded segment is missing.
+ * @throws Error if Base64URL decoding or JSON parsing fails.
+ */
 function decodeState(state: string) {
 	const [encoded] = state.split(".");
 	if (!encoded) {
@@ -33,10 +59,23 @@ function decodeState(state: string) {
 	return JSON.parse(Buffer.from(encoded, "base64url").toString()) as OAuthState;
 }
 
+/**
+ * Extracts a human-readable message from an unknown error value.
+ *
+ * @param error - The value to extract a message from
+ * @returns `error.message` if `error` is an `Error`, otherwise the result of `String(error)`
+ */
 function getErrorMessage(error: unknown) {
 	return error instanceof Error ? error.message : String(error);
 }
 
+/**
+ * Start an interactive OAuth authorization flow using PKCE, open the browser for user authentication, run a temporary local callback server to receive the redirect, exchange the authorization code for an access token, persist it, and return the token.
+ *
+ * @returns An object with `token` set to the obtained OAuth access token.
+ * @throws Error if `CLERK_FRONTEND_API` is not set.
+ * @throws Error if `CLERK_OAUTH_CLIENT_ID` is not set.
+ */
 export async function performLogin() {
 	const clerkFrontendApi = process.env.CLERK_FRONTEND_API;
 	const clientId = process.env.CLERK_OAUTH_CLIENT_ID;
