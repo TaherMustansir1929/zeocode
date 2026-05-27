@@ -1,10 +1,10 @@
 import { Outlet } from "react-router";
-import { ToastProvider } from "../providers/toast";
 import { DialogProvider } from "../providers/dialog";
 import { KeyboardLayerProvider } from "../providers/keyboard-layer";
-import { ThemeProvider } from "../providers/theme";
-import { ThemedRoot } from "./themed-root";
 import { PromptConfigProvider } from "../providers/prompt-config";
+import { ThemeProvider } from "../providers/theme";
+import { ToastProvider } from "../providers/toast";
+import { ThemedRoot } from "./themed-root";
 
 export function RootLayout() {
   return (
@@ -22,4 +22,4 @@ export function RootLayout() {
       </ToastProvider>
     </ThemeProvider>
   );
-};
+}
