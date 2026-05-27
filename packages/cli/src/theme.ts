@@ -1,22 +1,22 @@
-export type ThemeColors = {
-  primary: string;
-  planMode: string;
-  selection: string;
-  thinking: string;
-  success: string;
+export interface ThemeColors {
+  background: string;
+  dialogSurface: string;
+  dimSeparator: string;
   error: string;
   info: string;
-  background: string;
+  planMode: string;
+  primary: string;
+  selection: string;
+  success: string;
   surface: string;
-  dialogSurface: string;
+  thinking: string;
   thinkingBorder: string;
-  dimSeparator: string;
-};
+}
 
-export type Theme = {
-  name: string;
+export interface Theme {
   colors: ThemeColors;
-};
+  name: string;
+}
 
 export const THEMES: Theme[] = [
   {
@@ -565,4 +565,5 @@ export const THEMES: Theme[] = [
   },
 ];
 
-export const DEFAULT_THEME = THEMES.find((t) => t.name === "Nightfox")!;
+export const DEFAULT_THEME =
+  THEMES.find((t) => t.name === "Nightfox") ?? THEMES[0];

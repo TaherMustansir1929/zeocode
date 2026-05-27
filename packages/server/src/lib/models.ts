@@ -26,12 +26,12 @@ type AnthropicModelId = Extract<
 type OpenAIModelId = Extract<SupportedChatModel, { provider: "openai" }>["id"];
 type GoogleModelId = Extract<SupportedChatModel, { provider: "google" }>["id"];
 
-export type ResolvedModel = {
+export interface ResolvedModel {
   model: LanguageModel;
-  provider: SupportedProvider;
   modelId: SupportedChatModelId;
+  provider: SupportedProvider;
   providerOptions?: ProviderOptions;
-};
+}
 
 const ANTHROPIC_PROVIDER_OPTIONS: Partial<
   Record<AnthropicModelId, ProviderOptions>

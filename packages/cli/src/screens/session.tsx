@@ -78,7 +78,7 @@ function SessionChat({
   // Stop the pending reply when the user leaves this session.
   useEffect(
     () => () => {
-      void abort();
+      abort();
     },
     [abort]
   );
@@ -96,7 +96,7 @@ function SessionChat({
       return;
     }
     hasSubmittedInitialPromptRef.current = true;
-    void submit({
+    submit({
       userText: initialPrompt.message,
       mode: initialPrompt.mode,
       model: initialPrompt.model,
@@ -178,7 +178,15 @@ export function Session() {
   }, [id, prefetched, toast, navigate]);
 
   if (!session) {
-    return <SessionShell inputDisabled loading onSubmit={() => {}} />;
+    return (
+      <SessionShell
+        inputDisabled
+        loading
+        onSubmit={() => {
+          /* noop */
+        }}
+      />
+    );
   }
 
   return (

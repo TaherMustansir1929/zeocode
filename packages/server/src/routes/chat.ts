@@ -21,12 +21,12 @@ import { isSupportedChatModel, resolveChatModel } from "../lib/models";
 import type { AuthenticatedEnv } from "../middleware/require-auth";
 import { buildSystemPrompt } from "../system-prompt";
 
-type ChatMessageMetadata = {
+interface ChatMessageMetadata {
+  durationMs?: number;
   mode?: ModeType;
   model?: string;
-  durationMs?: number;
   usage?: LanguageModelUsage;
-};
+}
 
 type ZeocodeUIMessage = UIMessage<
   ChatMessageMetadata,

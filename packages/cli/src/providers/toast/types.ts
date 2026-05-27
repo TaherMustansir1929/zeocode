@@ -1,9 +1,9 @@
 export type ToastVariant = "success" | "error" | "info";
 
-export type ToastOptions = {
+export interface ToastOptions {
+  duration?: number;
   message: string;
   variant?: ToastVariant;
-  duration?: number;
-};
+}
 
 export const DEFAULT_DURATION = 3000;

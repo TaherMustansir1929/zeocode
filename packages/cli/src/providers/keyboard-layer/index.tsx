@@ -10,12 +10,12 @@ import {
 
 type Responder = () => boolean;
 
-type KeyboardLayerContextValue = {
-  push: (id: string, responder?: Responder) => void;
-  pop: (id: string) => void;
+interface KeyboardLayerContextValue {
   isTopLayer: (id: string) => boolean;
+  pop: (id: string) => void;
+  push: (id: string, responder?: Responder) => void;
   setResponder: (id: string, responder: Responder | null) => void;
-};
+}
 
 const KeyboardLayerContext = createContext<KeyboardLayerContextValue | null>(
   null
@@ -53,7 +53,7 @@ export function KeyboardLayerProvider({
   }, []);
 
   const isTopLayer = useCallback(
-    (id: string) => stack.length === 0 || stack[stack.length - 1] === id,
+    (id: string) => stack.length === 0 || stack.at(-1) === id,
     [stack]
   );
 
@@ -76,9 +76,12 @@ export function KeyboardLayerProvider({
 
     const currentStack = stackRef.current;
     for (let i = currentStack.length - 1; i >= 0; i--) {
-      const layerId = currentStack[i]!;
+      const layerId = currentStack[i];
+      if (!layerId) {
+        continue;
+      }
       const responder = responders.current.get(layerId);
-      if (responder && responder()) {
+      if (responder?.()) {
         return;
       }
     }

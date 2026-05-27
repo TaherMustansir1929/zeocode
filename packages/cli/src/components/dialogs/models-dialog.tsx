@@ -3,10 +3,10 @@ import { useCallback } from "react";
 import { useDialog } from "../../providers/dialog";
 import { DialogSearchList } from "../dialog-search-list";
 
-type ModelsDialogContentProps = {
+interface ModelsDialogContentProps {
   models: SupportedChatModelId[];
   onSelectModel: (modelId: SupportedChatModelId) => void;
-};
+}
 
 export const ModelsDialogContent = ({
   models,

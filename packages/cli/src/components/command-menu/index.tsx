@@ -12,13 +12,13 @@ const MAX_VISIBLE_ITEMS = 8;
 const COMMAND_COL_WIDTH =
   Math.max(...COMMANDS.map((cmd) => cmd.name.length)) + 4;
 
-type CommandMenuProps = {
-  query: string;
-  selectedIndex: number;
-  scrollRef: RefObject<ScrollBoxRenderable | null>;
-  onSelect: (index: number) => void;
+interface CommandMenuProps {
   onExecute: (index: number) => void;
-};
+  onSelect: (index: number) => void;
+  query: string;
+  scrollRef: RefObject<ScrollBoxRenderable | null>;
+  selectedIndex: number;
+}
 
 export function CommandMenu({
   query,
@@ -45,6 +45,7 @@ export function CommandMenu({
         const isSelected = i === selectedIndex;
 
         return (
+          // biome-ignore lint/a11y/noStaticElementInteractions: OpenTUI TUI element
           <box
             backgroundColor={isSelected ? colors.selection : undefined}
             flexDirection="row"

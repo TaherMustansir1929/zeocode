@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { useTheme } from "../providers/theme";
 
-type Props = {
+interface Props {
   children: ReactNode;
-};
+}
 
 export function ThemedRoot({ children }: Props) {
   const { colors } = useTheme();

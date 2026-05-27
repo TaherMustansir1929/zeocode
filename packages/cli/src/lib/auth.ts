@@ -9,9 +9,9 @@ import {
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-type AuthData = {
+interface AuthData {
   token: string;
-};
+}
 
 const AUTH_DIR = join(homedir(), ".zeocode");
 const AUTH_FILE = join(AUTH_DIR, "auth.json");

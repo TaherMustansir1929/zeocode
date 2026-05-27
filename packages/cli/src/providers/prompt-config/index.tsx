@@ -7,13 +7,13 @@ import {
 import type { ReactNode } from "react";
 import { createContext, useCallback, useContext, useState } from "react";
 
-type PromptConfigContextValue = {
+interface PromptConfigContextValue {
   mode: ModeType;
-  toggleMode: () => void;
-  setMode: (mode: ModeType) => void;
   model: SupportedChatModelId;
+  setMode: (mode: ModeType) => void;
   setModel: (model: SupportedChatModelId) => void;
-};
+  toggleMode: () => void;
+}
 
 const PromptConfigContext = createContext<PromptConfigContextValue | null>(
   null
@@ -29,9 +29,9 @@ export function usePromptConfig(): PromptConfigContextValue {
   return value;
 }
 
-type PromptConfigProviderProps = {
+interface PromptConfigProviderProps {
   children: ReactNode;
-};
+}
 
 export function PromptConfigProvider({ children }: PromptConfigProviderProps) {
   const [mode, setMode] = useState<ModeType>(Mode.BUILD);

@@ -84,7 +84,13 @@ export function NewSession() {
   }
 
   return (
-    <SessionShell inputDisabled loading onSubmit={() => {}}>
+    <SessionShell
+      inputDisabled
+      loading
+      onSubmit={() => {
+        /* noop */
+      }}
+    >
       <UserMessage message={state.message} mode={state.mode} />
     </SessionShell>
   );

@@ -3,10 +3,10 @@ import { saveAuth } from "./auth";
 
 const LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
 
-type OAuthState = {
+interface OAuthState {
   nonce: string;
   port: number;
-};
+}
 
 /**
  * Encode the given data to a Base64URL string.
@@ -97,6 +97,7 @@ export async function performLogin() {
   return new Promise<{ token: string }>((resolve, reject) => {
     const server = Bun.serve({
       port: 0,
+      // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: OAuth callback server fetch handler
       async fetch(req) {
         const url = new URL(req.url);
 
@@ -199,7 +200,7 @@ export async function performLogin() {
     authorizeUrl.searchParams.set("code_challenge", codeChallenge);
     authorizeUrl.searchParams.set("code_challenge_method", "S256");
 
-    void open(authorizeUrl.toString()).catch((err) => {
+    open(authorizeUrl.toString()).catch((err) => {
       if (!settled) {
         settled = true;
         server.stop();

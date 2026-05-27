@@ -2,9 +2,9 @@ import "opentui-spinner/react";
 import { Mode, type ModeType } from "@zeocode/shared";
 import { useTheme } from "../providers/theme";
 
-type Props = {
+interface Props {
   mode?: ModeType;
-};
+}
 
 export function Spinner({ mode = Mode.BUILD }: Props) {
   const { colors } = useTheme();

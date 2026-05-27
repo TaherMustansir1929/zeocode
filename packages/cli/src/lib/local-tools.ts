@@ -1,12 +1,13 @@
+import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { Mode, type ModeType, toolInputSchemas } from "@zeocode/shared";
-import { mkdir, readdir, readFile, stat, writeFile } from "fs/promises";
-import { dirname, isAbsolute, join, relative, resolve } from "path";
 
 const MAX_FILE_SIZE = 10_000;
 const MAX_RESULTS = 200;
 const MAX_MATCHES = 50;
 const MAX_OUTPUT = 20_000;
 const DEFAULT_TIMEOUT = 30_000;
+const GREP_LINE_REGEX = /^(.+?):(\d+):(.*)$/;
 
 function resolveInsideCwd(path: string) {
   const cwd = process.cwd();
@@ -26,6 +27,7 @@ function truncate(value: string, limit: number) {
     : value;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: dispatcher switch case
 export async function executeLocalTool(
   toolName: string,
   input: unknown,
@@ -68,13 +70,12 @@ export async function executeLocalTool(
         });
       }
 
-      results.sort((a, b) =>
-        a.type === b.type
-          ? a.name.localeCompare(b.name)
-          : a.type === "directory"
-            ? -1
-            : 1
-      );
+      results.sort((a, b) => {
+        if (a.type === b.type) {
+          return a.name.localeCompare(b.name);
+        }
+        return a.type === "directory" ? -1 : 1;
+      });
       return { path: relative(cwd, resolved) || ".", entries: results };
     }
     case "glob": {
@@ -144,12 +145,13 @@ export async function executeLocalTool(
           truncated = true;
           break;
         }
-        const match = line.match(/^(.+?):(\d+):(.*)$/);
+        const match = GREP_LINE_REGEX.exec(line);
         if (match) {
+          const [, file = "", lineNum = "0", content = ""] = match;
           matches.push({
-            file: relative(cwd, match[1]!),
-            line: Number(match[2]),
-            content: match[3]!,
+            file: relative(cwd, file),
+            line: Number(lineNum),
+            content,
           });
         }
       }

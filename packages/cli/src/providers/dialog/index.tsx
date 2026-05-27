@@ -7,10 +7,10 @@ import { useKeyboardLayer } from "../keyboard-layer";
 import { useTheme } from "../theme";
 import type { DialogConfig } from "./types";
 
-export type DialogContextValue = {
-  open: (config: DialogConfig) => void;
+export interface DialogContextValue {
   close: () => void;
-};
+  open: (config: DialogConfig) => void;
+}
 
 const DialogContext = createContext<DialogContextValue | null>(null);
 
@@ -22,9 +22,9 @@ export function useDialog(): DialogContextValue {
   return value;
 }
 
-type DialogProviderProps = {
+interface DialogProviderProps {
   children: ReactNode;
-};
+}
 
 export function DialogProvider({ children }: DialogProviderProps) {
   const [currentDialog, setCurrentDialog] = useState<DialogConfig | null>(null);
@@ -59,10 +59,10 @@ export function DialogProvider({ children }: DialogProviderProps) {
   );
 }
 
-type DialogProps = {
-  currentDialog: DialogConfig | null;
+interface DialogProps {
   close: () => void;
-};
+  currentDialog: DialogConfig | null;
+}
 
 function Dialog({ currentDialog, close }: DialogProps) {
   const { isTopLayer } = useKeyboardLayer();

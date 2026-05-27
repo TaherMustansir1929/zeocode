@@ -4,13 +4,13 @@ import { usePromptConfig } from "../providers/prompt-config";
 import { InputBar } from "./input-bar";
 import { Spinner } from "./spinner";
 
-type Props = {
+interface Props {
   children?: ReactNode;
-  onSubmit: (text: string) => void;
   inputDisabled?: boolean;
-  loading?: boolean;
   interruptible?: boolean;
-};
+  loading?: boolean;
+  onSubmit: (text: string) => void;
+}
 
 export function SessionShell({
   children,

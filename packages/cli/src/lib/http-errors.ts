@@ -1,8 +1,8 @@
-type ErrorResponse = {
+interface ErrorResponse {
   json: () => Promise<unknown>;
   status: number;
   statusText: string;
-};
+}
 
 export async function getErrorMessage(response: ErrorResponse) {
   try {

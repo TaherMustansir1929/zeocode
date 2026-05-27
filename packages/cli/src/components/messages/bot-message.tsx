@@ -12,18 +12,21 @@ type ToolPart = Extract<
   { type: `tool-${string}` | "dynamic-tool" }
 >;
 
-type Props = {
-  parts: ClientMessagePart[];
-  model: string;
-  mode: ModeType;
+interface Props {
   durationMs?: number;
+  mode: ModeType;
+  model: string;
+  parts: ClientMessagePart[];
   streaming?: boolean;
-};
+}
+
+const TOOL_NAME_REGEX = /([a-z0-9])([A-Z])/g;
+const START_OF_STRING_REGEX = /^./;
 
 function formatToolName(name: string): string {
   return name
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/^./, (c) => c.toUpperCase());
+    .replace(TOOL_NAME_REGEX, "$1 $2")
+    .replace(START_OF_STRING_REGEX, (c) => c.toUpperCase());
 }
 
 function isToolPart(part: ClientMessagePart): part is ToolPart {
@@ -40,18 +43,18 @@ function formatToolArgs(tc: ToolPart): string {
   return Object.values(tc.input).map(String).join(" ");
 }
 
-type PartGroup = {
-  type: ClientMessagePart["type"];
-  parts: ClientMessagePart[];
+interface PartGroup {
   key: string;
-};
+  parts: ClientMessagePart[];
+  type: ClientMessagePart["type"];
+}
 
 function groupConsecutiveParts(parts: ClientMessagePart[]): PartGroup[] {
   const groups: PartGroup[] = [];
+  let i = 0;
 
-  for (let i = 0; i < parts.length; i++) {
-    const part = parts[i]!;
-    const lastGroup = groups[groups.length - 1];
+  for (const part of parts) {
+    const lastGroup = groups.at(-1);
 
     if (lastGroup && lastGroup.type === part.type) {
       lastGroup.parts.push(part);
@@ -61,23 +64,19 @@ function groupConsecutiveParts(parts: ClientMessagePart[]): PartGroup[] {
         : `group-${part.type}-${i}`;
       groups.push({ type: part.type, parts: [part], key });
     }
+    i++;
   }
 
   return groups;
 }
 
-export function BotMessage({
-  parts,
-  model,
-  mode,
-  durationMs,
-  streaming = false,
-}: Props) {
+export function BotMessage({ parts, model, mode, durationMs }: Props) {
   const { colors } = useTheme();
   return (
     <box alignItems="center" width="100%">
       {groupConsecutiveParts(parts).map((group, i) => (
         <box key={group.key} paddingTop={i === 0 ? 0 : 1} width="100%">
+          {/* biome-ignore lint/complexity/noExcessiveCognitiveComplexity: jsx rendering branch */}
           {group.parts.map((part, j) => {
             if (part.type === "reasoning") {
               return (

@@ -5,10 +5,10 @@ import { DialogSearchList } from "../dialog-search-list";
 
 const AVAILABLE_MODES: ModeType[] = [Mode.BUILD, Mode.PLAN];
 
-type AgentsDialogContentProps = {
+interface AgentsDialogContentProps {
   currentMode: ModeType;
   onSelectMode: (mode: ModeType) => void;
-};
+}
 
 function getModeLabel(mode: ModeType) {
   return mode === Mode.PLAN ? "Plan" : "Build";

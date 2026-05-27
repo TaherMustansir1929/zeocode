@@ -1,8 +1,8 @@
 import type { ModeType } from "@zeocode/shared";
 
-type SystemPromptParams = {
+interface SystemPromptParams {
   mode: ModeType;
-};
+}
 
 export function buildSystemPrompt({ mode }: SystemPromptParams): string {
   const parts: string[] = [];

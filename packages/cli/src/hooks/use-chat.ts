@@ -17,12 +17,12 @@ import { apiClient } from "../lib/api-client";
 import { getAuth } from "../lib/auth";
 import { executeLocalTool } from "../lib/local-tools";
 
-export type ChatMessageMetadata = {
+export interface ChatMessageMetadata {
+  durationMs?: number;
   mode?: ModeType;
   model?: SupportedChatModelId | string;
-  durationMs?: number;
   usage?: LanguageModelUsage;
-};
+}
 
 type ChatTools = {
   [Name in keyof InferUITools<ToolContracts>]: {
@@ -45,7 +45,7 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
             : new Headers();
         },
         prepareSendMessagesRequest({ messages }) {
-          const message = messages[messages.length - 1];
+          const message = messages.at(-1);
           if (!message) {
             throw new Error("No message to send");
           }
@@ -53,7 +53,7 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
           const metadata = messages.findLast(
             (m) => m.metadata?.mode && m.metadata?.model
           )?.metadata;
-          const previousMessage = messages[messages.length - 2];
+          const previousMessage = messages.at(-2);
           const requestMessages =
             message.role === "assistant" && previousMessage?.role === "user"
               ? [previousMessage, message]
@@ -79,7 +79,7 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
     onToolCall({ toolCall }) {
       const mode = chat.messages.at(-1)?.metadata?.mode ?? Mode.BUILD;
 
-      void executeLocalTool(toolCall.toolName, toolCall.input, mode)
+      executeLocalTool(toolCall.toolName, toolCall.input, mode)
         .then((output) =>
           chat.addToolOutput({
             tool: toolCall.toolName as keyof ChatTools,

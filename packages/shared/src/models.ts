@@ -1,9 +1,9 @@
 export type SupportedProvider = "anthropic" | "openai" | "google";
 
-type SupportedChatModelDefinition = {
+interface SupportedChatModelDefinition {
   id: string;
   provider: SupportedProvider;
-};
+}
 
 export const SUPPORTED_CHAT_MODELS = [
   {

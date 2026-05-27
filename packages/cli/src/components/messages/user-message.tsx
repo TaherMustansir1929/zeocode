@@ -2,10 +2,10 @@ import { Mode, type ModeType } from "@zeocode/shared";
 import { useTheme } from "../../providers/theme";
 import { EmptyBorder } from "../border";
 
-type Props = {
+interface Props {
   message: string;
   mode: ModeType;
-};
+}
 
 export function UserMessage({ message, mode }: Props) {
   const { colors } = useTheme();

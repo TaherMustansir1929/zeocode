@@ -13,9 +13,9 @@ import { useTheme } from "../theme";
 import type { ToastOptions, ToastVariant } from "./types";
 import { DEFAULT_DURATION } from "./types";
 
-export type ToastContextValue = {
+export interface ToastContextValue {
   show: (options: ToastOptions) => void;
-};
+}
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
@@ -28,9 +28,9 @@ export function useToast(): ToastContextValue {
   return value;
 }
 
-type ToastProviderProps = {
+interface ToastProviderProps {
   children: ReactNode;
-};
+}
 
 export function ToastProvider({ children }: ToastProviderProps) {
   const [currentToast, setCurrentToast] = useState<ToastOptions | null>(null);
@@ -72,9 +72,9 @@ export function ToastProvider({ children }: ToastProviderProps) {
   );
 }
 
-type ToastProps = {
+interface ToastProps {
   currentToast: ToastOptions | null;
-};
+}
 
 function Toast({ currentToast }: ToastProps) {
   const { width } = useTerminalDimensions();

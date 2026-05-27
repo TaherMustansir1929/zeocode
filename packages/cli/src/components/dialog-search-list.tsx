@@ -10,16 +10,16 @@ import { useTheme } from "../providers/theme";
 
 const MAX_VISIBLE_ITEMS = 6;
 
-type DialogSearchListProps<T> = {
-  items: T[];
-  onSelect: (item: T) => void;
-  onHighlight?: (item: T) => void;
-  filterFn: (item: T, query: string) => boolean;
-  renderItem: (item: T, isSelected: boolean) => ReactNode;
-  getKey: (item: T) => string;
-  placeholder?: string;
+interface DialogSearchListProps<T> {
   emptyText?: string;
-};
+  filterFn: (item: T, query: string) => boolean;
+  getKey: (item: T) => string;
+  items: T[];
+  onHighlight?: (item: T) => void;
+  onSelect: (item: T) => void;
+  placeholder?: string;
+  renderItem: (item: T, isSelected: boolean) => ReactNode;
+}
 
 export function DialogSearchList<T>({
   items,

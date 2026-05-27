@@ -33,18 +33,19 @@ const MAX_VISIBLE_MENTIONS = 8;
 const CURRENT_DIRECTORY = process.cwd();
 const MAX_FALLBACK_MENTION_CANDIDATES = 32;
 const MENTION_QUERY_CHARACTER = /[A-Za-z0-9._/-]/;
+const WHITESPACE_REGEX = /\s/;
 const RECURSIVE_MENTION_IGNORED_DIRECTORIES = new Set(["node_modules"]);
 
-type MentionMatch = {
-  start: number;
+interface MentionMatch {
   end: number;
   query: string;
-};
+  start: number;
+}
 
-type MentionCandidate = {
-  path: string;
+interface MentionCandidate {
   kind: "file" | "directory";
-};
+  path: string;
+}
 
 function isWithinCurrentDirectory(targetPath: string) {
   const relativePath = relative(CURRENT_DIRECTORY, targetPath);
@@ -65,12 +66,12 @@ function findActiveMention(
   const safeOffset = Math.max(0, Math.min(cursorOffset, text.length));
 
   let start = safeOffset;
-  while (start > 0 && !/\s/.test(text[start - 1]!)) {
+  while (start > 0 && !WHITESPACE_REGEX.test(text[start - 1] ?? "")) {
     start -= 1;
   }
 
   let end = safeOffset;
-  while (end < text.length && !/\s/.test(text[end]!)) {
+  while (end < text.length && !WHITESPACE_REGEX.test(text[end] ?? "")) {
     end += 1;
   }
 
@@ -90,7 +91,7 @@ function findActiveMention(
   let mentionEnd = mentionStart + 1;
   while (
     mentionEnd < token.length &&
-    isMentionQueryCharacter(token[mentionEnd]!)
+    isMentionQueryCharacter(token[mentionEnd] ?? "")
   ) {
     mentionEnd += 1;
   }
@@ -106,6 +107,58 @@ function findActiveMention(
   };
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: recursive tree traversal
+async function recursiveVisit(
+  absoluteDirectory: string,
+  directoryPart: string,
+  showHiddenEntries: boolean,
+  lowercasePrefix: string,
+  fallbackMatches: MentionCandidate[]
+): Promise<void> {
+  const entries = await readdir(absoluteDirectory, { withFileTypes: true });
+
+  for (const entry of entries) {
+    if (!showHiddenEntries && entry.name.startsWith(".")) {
+      continue;
+    }
+
+    if (
+      entry.isDirectory() &&
+      RECURSIVE_MENTION_IGNORED_DIRECTORIES.has(entry.name)
+    ) {
+      continue;
+    }
+
+    const path = directoryPart ? `${directoryPart}/${entry.name}` : entry.name;
+    const kind: MentionCandidate["kind"] = entry.isDirectory()
+      ? "directory"
+      : "file";
+
+    if (entry.name.toLowerCase().startsWith(lowercasePrefix)) {
+      fallbackMatches.push({
+        path: kind === "directory" ? `${path}/` : path,
+        kind,
+      });
+      if (fallbackMatches.length >= MAX_FALLBACK_MENTION_CANDIDATES) {
+        return;
+      }
+    }
+
+    if (entry.isDirectory()) {
+      await recursiveVisit(
+        resolve(absoluteDirectory, entry.name),
+        path,
+        showHiddenEntries,
+        lowercasePrefix,
+        fallbackMatches
+      );
+      if (fallbackMatches.length >= MAX_FALLBACK_MENTION_CANDIDATES) {
+        return;
+      }
+    }
+  }
+}
+
 async function getMentionCandidates(
   query: string
 ): Promise<MentionCandidate[]> {
@@ -119,17 +172,23 @@ async function getMentionCandidates(
     ? normalizedQuery.length - 1
     : normalizedQuery.lastIndexOf("/");
 
-  const directoryPart = hasTrailingSlash
-    ? normalizedQuery.slice(0, -1)
-    : lastSlashIndex === -1
-      ? ""
-      : normalizedQuery.slice(0, lastSlashIndex);
+  let directoryPart = "";
+  if (hasTrailingSlash) {
+    directoryPart = normalizedQuery.slice(0, -1);
+  } else if (lastSlashIndex === -1) {
+    directoryPart = "";
+  } else {
+    directoryPart = normalizedQuery.slice(0, lastSlashIndex);
+  }
 
-  const namePrefix = hasTrailingSlash
-    ? ""
-    : lastSlashIndex === -1
-      ? normalizedQuery
-      : normalizedQuery.slice(lastSlashIndex + 1);
+  let namePrefix = "";
+  if (hasTrailingSlash) {
+    namePrefix = "";
+  } else if (lastSlashIndex === -1) {
+    namePrefix = normalizedQuery;
+  } else {
+    namePrefix = normalizedQuery.slice(lastSlashIndex + 1);
+  }
 
   const absoluteDirectory = resolve(CURRENT_DIRECTORY, directoryPart || ".");
   if (!isWithinCurrentDirectory(absoluteDirectory)) {
@@ -172,51 +231,13 @@ async function getMentionCandidates(
     }
 
     const fallbackMatches: MentionCandidate[] = [];
-    const visit = async (
-      absoluteDirectory: string,
-      directoryPart: string
-    ): Promise<void> => {
-      const entries = await readdir(absoluteDirectory, { withFileTypes: true });
-
-      for (const entry of entries) {
-        if (!showHiddenEntries && entry.name.startsWith(".")) {
-          continue;
-        }
-
-        if (
-          entry.isDirectory() &&
-          RECURSIVE_MENTION_IGNORED_DIRECTORIES.has(entry.name)
-        ) {
-          continue;
-        }
-
-        const path = directoryPart
-          ? `${directoryPart}/${entry.name}`
-          : entry.name;
-        const kind: MentionCandidate["kind"] = entry.isDirectory()
-          ? "directory"
-          : "file";
-
-        if (entry.name.toLowerCase().startsWith(lowercasePrefix)) {
-          fallbackMatches.push({
-            path: kind === "directory" ? `${path}/` : path,
-            kind,
-          });
-          if (fallbackMatches.length >= MAX_FALLBACK_MENTION_CANDIDATES) {
-            return;
-          }
-        }
-
-        if (entry.isDirectory()) {
-          await visit(resolve(absoluteDirectory, entry.name), path);
-          if (fallbackMatches.length >= MAX_FALLBACK_MENTION_CANDIDATES) {
-            return;
-          }
-        }
-      }
-    };
-
-    await visit(CURRENT_DIRECTORY, "");
+    await recursiveVisit(
+      CURRENT_DIRECTORY,
+      "",
+      showHiddenEntries,
+      lowercasePrefix,
+      fallbackMatches
+    );
     return fallbackMatches.sort((left, right) =>
       left.path.localeCompare(right.path)
     );
@@ -225,13 +246,13 @@ async function getMentionCandidates(
   }
 }
 
-type FileMentionMenuProps = {
+interface FileMentionMenuProps {
   candidates: MentionCandidate[];
-  selectedIndex: number;
-  scrollRef: RefObject<ScrollBoxRenderable | null>;
-  onSelect: (index: number) => void;
   onExecute: (index: number) => void;
-};
+  onSelect: (index: number) => void;
+  scrollRef: RefObject<ScrollBoxRenderable | null>;
+  selectedIndex: number;
+}
 
 function FileMentionMenu({
   candidates,
@@ -287,10 +308,10 @@ function FileMentionMenu({
   );
 }
 
-type Props = {
-  onSubmit: (text: string) => void;
+interface Props {
   disabled?: boolean;
-};
+  onSubmit: (text: string) => void;
+}
 
 export const TEXTAREA_KEY_BINDINGS: KeyBinding[] = [
   { name: "return", action: "submit" },
@@ -302,7 +323,9 @@ export const TEXTAREA_KEY_BINDINGS: KeyBinding[] = [
 export function InputBar({ onSubmit, disabled = false }: Props) {
   const { mode, toggleMode, setMode, setModel } = usePromptConfig();
   const textareaRef = useRef<TextareaRenderable>(null);
-  const onSubmitRef = useRef<() => void>(() => {});
+  const onSubmitRef = useRef<() => void>(() => {
+    /* noop */
+  });
   const activeMentionRef = useRef<MentionMatch | null>(null);
   const mentionScrollRef = useRef<ScrollBoxRenderable>(null);
 
@@ -422,7 +445,7 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
     [mentionCandidates, syncMentionMenu]
   );
 
-  const handleTextareaCursorChange = useCallback(() => {
+  const _handleTextareaCursorChange = useCallback(() => {
     const textarea = textareaRef.current;
     if (!textarea) {
       return;
@@ -451,7 +474,7 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
           setModel,
         });
       } else {
-        textarea.insertText(command.value + " ");
+        textarea.insertText(`${command.value} `);
       }
     },
     [renderer, toast, dialog, navigate, mode, setMode, setModel]
@@ -488,7 +511,7 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
       });
     };
 
-    void loadCandidates();
+    loadCandidates();
 
     return () => {
       ignore = true;

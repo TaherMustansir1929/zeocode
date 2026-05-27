@@ -5,15 +5,15 @@ import { useKeyboardLayer } from "../../providers/keyboard-layer";
 import { getFilteredCommands } from "./filter-commands";
 import type { Command } from "./types";
 
-type UseCommandMenuReturn = {
-  showCommandMenu: boolean;
+interface UseCommandMenuReturn {
   commandQuery: string;
-  selectedIndex: number;
-  scrollRef: RefObject<ScrollBoxRenderable | null>;
   handleContentChange: (text: string) => void;
   resolveCommand: (index: number) => Command | undefined;
+  scrollRef: RefObject<ScrollBoxRenderable | null>;
+  selectedIndex: number;
   setSelectedIndex: (index: number) => void;
-};
+  showCommandMenu: boolean;
+}
 
 export function useCommandMenu(): UseCommandMenuReturn {
   const [textValue, setTextValue] = useState("");

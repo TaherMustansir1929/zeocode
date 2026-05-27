@@ -2,9 +2,9 @@ import { TextAttributes } from "@opentui/core";
 import { useTheme } from "../../providers/theme";
 import { EmptyBorder } from "../border";
 
-type Props = {
+interface Props {
   message: string;
-};
+}
 
 export function ErrorMessage({ message }: Props) {
   const { colors } = useTheme();

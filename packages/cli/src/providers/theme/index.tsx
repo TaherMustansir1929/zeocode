@@ -9,9 +9,9 @@ import { DEFAULT_THEME, THEMES } from "../../theme";
 const CONFIG_DIR = join(homedir(), ".zeocode");
 const THEME_PREFERENCES_PATH = join(CONFIG_DIR, "preferences.json");
 
-type ThemePreferences = {
+interface ThemePreferences {
   themeName: string;
-};
+}
 
 function getInitialTheme(): Theme {
   try {
@@ -44,11 +44,11 @@ function persistTheme(theme: Theme) {
   }
 }
 
-type ThemeContextValue = {
+interface ThemeContextValue {
   colors: ThemeColors;
   currentTheme: Theme;
   setTheme: (theme: Theme) => void;
-};
+}
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
@@ -60,9 +60,9 @@ export function useTheme(): ThemeContextValue {
   return value;
 }
 
-type ThemeProviderProps = {
+interface ThemeProviderProps {
   children: ReactNode;
-};
+}
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [currentTheme, setCurrentTheme] = useState<Theme>(getInitialTheme);
