@@ -117,7 +117,7 @@ if [[ ":$PATH:" != *":$HOME/.zeocode/bin:"* ]]; then
     mkdir -p "$FISH_CONFIG_DIR"
     FISH_CONFIG="$FISH_CONFIG_DIR/config.fish"
     
-    if ! grep -Fq "fish_add_path" "$FISH_CONFIG" 2>/dev/null | grep -Fq "~/.zeocode/bin" 2>/dev/null; then
+    if ! grep -Fq 'fish_add_path $HOME/.zeocode/bin' "$FISH_CONFIG" 2>/dev/null; then
       echo "" >> "$FISH_CONFIG"
       echo "# Zeocode CLI" >> "$FISH_CONFIG"
       echo "fish_add_path \$HOME/.zeocode/bin" >> "$FISH_CONFIG"
