@@ -1,18 +1,21 @@
-import { type AnthropicLanguageModelOptions, anthropic } from "@ai-sdk/anthropic";
 import {
-    type GoogleLanguageModelInteractionsOptions,
-    google,
+	type AnthropicLanguageModelOptions,
+	anthropic,
+} from "@ai-sdk/anthropic";
+import {
+	type GoogleLanguageModelInteractionsOptions,
+	google,
 } from "@ai-sdk/google";
 import {
-    type OpenAILanguageModelResponsesOptions,
-    openai,
+	type OpenAILanguageModelResponsesOptions,
+	openai,
 } from "@ai-sdk/openai";
 import type { ProviderOptions } from "@ai-sdk/provider-utils";
 import {
-    findSupportedChatModel,
-    type SupportedChatModel,
-    type SupportedChatModelId,
-    type SupportedProvider,
+	findSupportedChatModel,
+	type SupportedChatModel,
+	type SupportedChatModelId,
+	type SupportedProvider,
 } from "@zeocode/shared";
 import type { LanguageModel } from "ai";
 
@@ -65,6 +68,7 @@ const GOOGLE_PROVIDER_OPTIONS: Partial<Record<GoogleModelId, ProviderOptions>> =
 		"gemini-3.1-flash-lite": {
 			google: {
 				thinkingLevel: "medium",
+				thinkingSummaries: "auto",
 			} satisfies GoogleLanguageModelInteractionsOptions,
 		},
 	};
