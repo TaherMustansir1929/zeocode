@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "zeocode",
+      "dependencies": {
+        "dotenv": "^17.4.2",
+      },
     },
     "packages/cli": {
       "name": "@zeocode/cli",
