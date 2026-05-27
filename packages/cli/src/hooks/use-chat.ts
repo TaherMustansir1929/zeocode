@@ -1,8 +1,9 @@
 import { useChat as useAiChat } from "@ai-sdk/react";
-import type {
-	ModeType,
-	SupportedChatModelId,
-	ToolContracts,
+import {
+	Mode,
+	type ModeType,
+	type SupportedChatModelId,
+	type ToolContracts,
 } from "@zeocode/shared";
 import {
 	DefaultChatTransport,
@@ -70,7 +71,7 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
 		messages: initialMessages,
 		transport,
 		onToolCall({ toolCall }) {
-			const mode = chat.messages.at(-1)?.metadata?.mode ?? "BUILD";
+			const mode = chat.messages.at(-1)?.metadata?.mode ?? Mode.BUILD;
 
 			void executeLocalTool(toolCall.toolName, toolCall.input, mode)
 				.then((output) =>

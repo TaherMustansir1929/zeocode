@@ -1,0 +1,3 @@
+Server Package:
+  [ ] Deploy server package on cloud
+  [ ] Add deployment url to clerk authorized URIs

@@ -44,7 +44,12 @@ export const toolInputSchemas = {
 			.string()
 			.optional()
 			.describe("Short description of the command"),
-		timeout: z.number().optional().describe("Timeout in milliseconds"),
+		timeout: z
+			.number()
+			.int()
+			.nonnegative()
+			.optional()
+			.describe("Timeout in milliseconds"),
 	}),
 } as const;
 

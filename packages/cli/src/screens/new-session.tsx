@@ -1,4 +1,4 @@
-import { modeSchema } from "@nightcode/shared";
+import { modeSchema } from "@zeocode/shared";
 import { useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { z } from "zod";
