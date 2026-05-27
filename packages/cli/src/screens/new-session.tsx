@@ -1,4 +1,4 @@
-import { Mode } from "@zeocode/database";
+import { modeSchema } from "@zeocode/shared";
 import { useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { z } from "zod";
@@ -10,7 +10,7 @@ import { useToast } from "../providers/toast";
 
 const newSessionStateSchema = z.object({
 	message: z.string(),
-	mode: z.enum(Mode),
+	mode: modeSchema,
 	model: z.string(),
 });
 
@@ -44,13 +44,6 @@ export function NewSession() {
 				const res = await apiClient.sessions.$post({
 					json: {
 						title: state.message.slice(0, 100),
-						cwd: process.cwd(),
-						initialMessage: {
-							role: "USER",
-							content: state.message,
-							mode: state.mode,
-							model: state.model,
-						},
 					},
 				});
 
@@ -61,7 +54,7 @@ export function NewSession() {
 				const session = await res.json();
 				navigate(`/sessions/${session.id}`, {
 					replace: true,
-					state: { session },
+					state: { session, initialPrompt: state },
 				});
 			} catch (error) {
 				if (ignore) return;

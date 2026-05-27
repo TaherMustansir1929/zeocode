@@ -7,20 +7,20 @@
     "dev": "bun run --watch src/index.tsx"
   },
   "devDependencies": {
-    "@zeocode/server": "workspace:*",
-    "@types/bun": "latest",
-    "@types/react": "^19.2.14"
+    "@types/bun": "^1.3.14",
+    "@types/react": "^19.2.14",
+    "@zeocode/server": "workspace:*"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
+    "@ai-sdk/react": "^3.0.193",
     "@opentui/core": "^0.1.97",
     "@opentui/react": "^0.1.97",
-    "@zeocode/database": "workspace:*",
     "@zeocode/shared": "workspace:*",
+    "ai": "^6.0.191",
     "date-fns": "^4.1.0",
-    "eventsource-parser": "^3.0.6",
     "hono": "^4.12.12",
     "open": "^11.0.0",
     "opentui-spinner": "^0.0.6",
