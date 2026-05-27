@@ -153,12 +153,17 @@ const app = new Hono<AuthenticatedEnv>().post(
           return;
         }
 
-        await db.session.update({
-          where: { id, userId },
-          data: {
-            messages: event.messages as unknown as Prisma.InputJsonValue,
-          },
-        });
+        try {
+          await db.session.update({
+            where: { id, userId },
+            data: {
+              messages: event.messages as unknown as Prisma.InputJsonValue,
+            },
+          });
+        } catch {
+          // Keep stream completion resilient even if persistence fails.
+          return;
+        }
       },
       onError(error) {
         return error instanceof Error ? error.message : String(error);
