@@ -1,19 +1,19 @@
-import { useRef, useState, useMemo, type RefObject } from "react";
 import type { ScrollBoxRenderable } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
+import { type RefObject, useMemo, useRef, useState } from "react";
+import { useKeyboardLayer } from "../../providers/keyboard-layer";
 import { getFilteredCommands } from "./filter-commands";
 import type { Command } from "./types";
-import { useKeyboardLayer } from "../../providers/keyboard-layer";
 
-type UseCommandMenuReturn = {
-  showCommandMenu: boolean;
+interface UseCommandMenuReturn {
   commandQuery: string;
-  selectedIndex: number;
-  scrollRef: RefObject<ScrollBoxRenderable | null>;
   handleContentChange: (text: string) => void;
   resolveCommand: (index: number) => Command | undefined;
+  scrollRef: RefObject<ScrollBoxRenderable | null>;
+  selectedIndex: number;
   setSelectedIndex: (index: number) => void;
-};
+  showCommandMenu: boolean;
+}
 
 export function useCommandMenu(): UseCommandMenuReturn {
   const [textValue, setTextValue] = useState("");
@@ -22,9 +22,13 @@ export function useCommandMenu(): UseCommandMenuReturn {
   const scrollRef = useRef<ScrollBoxRenderable>(null);
   const { push, pop, isTopLayer } = useKeyboardLayer();
 
-  const commandQuery = showCommandMenu && textValue.startsWith("/") ? textValue.slice(1) : "";
+  const commandQuery =
+    showCommandMenu && textValue.startsWith("/") ? textValue.slice(1) : "";
 
-  const filteredCommands = useMemo(() => getFilteredCommands(commandQuery), [commandQuery]);
+  const filteredCommands = useMemo(
+    () => getFilteredCommands(commandQuery),
+    [commandQuery]
+  );
 
   const close = () => {
     setShowCommandMenu(false);
@@ -33,26 +37,26 @@ export function useCommandMenu(): UseCommandMenuReturn {
 
   const handleContentChange = (text: string) => {
     setTextValue(text);
-				setSelectedIndex(0);
+    setSelectedIndex(0);
 
-				// Jump back to the top of the list when the user types a new character
-				const scrollbox = scrollRef.current;
-				if (scrollbox) {
-					scrollbox.scrollTo(0);
-				}
+    // Jump back to the top of the list when the user types a new character
+    const scrollbox = scrollRef.current;
+    if (scrollbox) {
+      scrollbox.scrollTo(0);
+    }
 
-				const prefix = text.startsWith("/") ? text.slice(1) : null;
-				if (prefix !== null && !prefix.includes(" ")) {
-					setShowCommandMenu(true);
-					if (!isTopLayer("command")) {
-						push("command", () => {
-							close();
-							return true;
-						});
-					}
-				} else {
-					close();
-				}
+    const prefix = text.startsWith("/") ? text.slice(1) : null;
+    if (prefix !== null && !prefix.includes(" ")) {
+      setShowCommandMenu(true);
+      if (!isTopLayer("command")) {
+        push("command", () => {
+          close();
+          return true;
+        });
+      }
+    } else {
+      close();
+    }
   };
 
   // Resolve a command at a specific index (returns the command, caller handles execution)
@@ -66,7 +70,9 @@ export function useCommandMenu(): UseCommandMenuReturn {
 
   // Arrow keys move selection; the list follows along when the highlight goes off-screen
   useKeyboard((key) => {
-    if (!showCommandMenu || !isTopLayer("command")) return;
+    if (!(showCommandMenu && isTopLayer("command"))) {
+      return;
+    }
 
     if (key.name === "escape") {
       key.preventDefault();
@@ -112,4 +118,4 @@ export function useCommandMenu(): UseCommandMenuReturn {
     resolveCommand,
     setSelectedIndex,
   };
-};
+}

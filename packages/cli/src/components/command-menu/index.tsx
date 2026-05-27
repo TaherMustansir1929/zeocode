@@ -1,23 +1,24 @@
+import { type ScrollBoxRenderable, TextAttributes } from "@opentui/core";
 import type { RefObject } from "react";
-import { TextAttributes, type ScrollBoxRenderable } from "@opentui/core";
-import { getFilteredCommands } from "./filter-commands";
-import { COMMANDS } from "./commands";
 import { useTheme } from "../../providers/theme";
+import { COMMANDS } from "./commands";
+import { getFilteredCommands } from "./filter-commands";
 
 const MAX_VISIBLE_ITEMS = 8;
 
 // Align all command names in a fixed-width column so their descriptions
 // start at the same horizontal position for a clean tabular look.
 // The width adjusts to accommodate the longest command name.
-const COMMAND_COL_WIDTH = Math.max(...COMMANDS.map((cmd) => cmd.name.length)) + 4;
+const COMMAND_COL_WIDTH =
+  Math.max(...COMMANDS.map((cmd) => cmd.name.length)) + 4;
 
-type CommandMenuProps = {
-  query: string;
-  selectedIndex: number;
-  scrollRef: RefObject<ScrollBoxRenderable | null>;
-  onSelect: (index: number) => void;
+interface CommandMenuProps {
   onExecute: (index: number) => void;
-};
+  onSelect: (index: number) => void;
+  query: string;
+  scrollRef: RefObject<ScrollBoxRenderable | null>;
+  selectedIndex: number;
+}
 
 export function CommandMenu({
   query,
@@ -33,36 +34,35 @@ export function CommandMenu({
   if (filtered.length === 0) {
     return (
       <box paddingX={1}>
-        <text attributes={TextAttributes.DIM}>
-          No matching commands
-        </text>
+        <text attributes={TextAttributes.DIM}>No matching commands</text>
       </box>
     );
   }
 
   return (
-    <scrollbox ref={scrollRef} height={visibleHeight}>
+    <scrollbox height={visibleHeight} ref={scrollRef}>
       {filtered.map((cmd, i) => {
         const isSelected = i === selectedIndex;
 
         return (
+          // biome-ignore lint/a11y/noStaticElementInteractions: OpenTUI TUI element
           <box
-            key={cmd.value}
-            flexDirection="row"
-            paddingX={1}
-            height={1}
-            overflow="hidden"
             backgroundColor={isSelected ? colors.selection : undefined}
-            onMouseMove={() => onSelect(i)}
+            flexDirection="row"
+            height={1}
+            key={cmd.value}
             onMouseDown={() => onExecute(i)}
+            onMouseMove={() => onSelect(i)}
+            overflow="hidden"
+            paddingX={1}
           >
-            <box width={COMMAND_COL_WIDTH} flexShrink={0}>
-              <text selectable={false} fg={isSelected ? "black" : "white"}>
+            <box flexShrink={0} width={COMMAND_COL_WIDTH}>
+              <text fg={isSelected ? "black" : "white"} selectable={false}>
                 /{cmd.name}
               </text>
             </box>
             <box flexGrow={1} flexShrink={1} overflow="hidden">
-              <text selectable={false} fg={isSelected ? "black" : "gray"}>
+              <text fg={isSelected ? "black" : "gray"} selectable={false}>
                 {cmd.description}
               </text>
             </box>
@@ -71,4 +71,4 @@ export function CommandMenu({
       })}
     </scrollbox>
   );
-};
+}

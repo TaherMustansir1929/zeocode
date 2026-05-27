@@ -9,40 +9,46 @@ import { DEFAULT_THEME, THEMES } from "../../theme";
 const CONFIG_DIR = join(homedir(), ".zeocode");
 const THEME_PREFERENCES_PATH = join(CONFIG_DIR, "preferences.json");
 
-type ThemePreferences = {
+interface ThemePreferences {
   themeName: string;
-};
+}
 
 function getInitialTheme(): Theme {
   try {
     const preferences = JSON.parse(
-      readFileSync(THEME_PREFERENCES_PATH, "utf8"),
+      readFileSync(THEME_PREFERENCES_PATH, "utf8")
     ) as Partial<ThemePreferences>;
-    const savedTheme = THEMES.find((theme) => theme.name === preferences.themeName);
+    const savedTheme = THEMES.find(
+      (theme) => theme.name === preferences.themeName
+    );
     return savedTheme ?? DEFAULT_THEME;
   } catch {
     return DEFAULT_THEME;
   }
-};
+}
 
 function persistTheme(theme: Theme) {
   try {
     mkdirSync(CONFIG_DIR, { recursive: true });
     writeFileSync(
       THEME_PREFERENCES_PATH,
-      JSON.stringify({ themeName: theme.name } satisfies ThemePreferences, null, 2),
-      "utf8",
+      JSON.stringify(
+        { themeName: theme.name } satisfies ThemePreferences,
+        null,
+        2
+      ),
+      "utf8"
     );
   } catch {
     // Ignore preference write failures so theme switching still works for this session.
   }
-};
+}
 
-type ThemeContextValue = {
+interface ThemeContextValue {
   colors: ThemeColors;
   currentTheme: Theme;
   setTheme: (theme: Theme) => void;
-};
+}
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
@@ -54,9 +60,9 @@ export function useTheme(): ThemeContextValue {
   return value;
 }
 
-type ThemeProviderProps = {
+interface ThemeProviderProps {
   children: ReactNode;
-};
+}
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [currentTheme, setCurrentTheme] = useState<Theme>(getInitialTheme);
@@ -67,9 +73,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   }, []);
 
   return (
-    <ThemeContext.Provider 
-      value={{ colors: currentTheme.colors, currentTheme, setTheme }}>
+    <ThemeContext.Provider
+      value={{ colors: currentTheme.colors, currentTheme, setTheme }}
+    >
       {children}
     </ThemeContext.Provider>
   );
-};
+}

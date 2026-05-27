@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useDialog } from "../../providers/dialog";
 import { useTheme } from "../../providers/theme";
-import { DialogSearchList } from "../dialog-search-list";
-import { THEMES } from "../../theme";
 import type { Theme } from "../../theme";
+import { THEMES } from "../../theme";
+import { DialogSearchList } from "../dialog-search-list";
 
 export const ThemeDialogContent = () => {
   const dialog = useDialog();
@@ -12,13 +12,14 @@ export const ThemeDialogContent = () => {
   const confirmedRef = useRef(false);
 
   // Revert to original theme if the user dismisses without confirming
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (!confirmedRef.current) {
         setTheme(originalThemeRef.current);
       }
-    };
-  }, [setTheme]);
+    },
+    [setTheme]
+  );
 
   const handleSelect = useCallback(
     (theme: Theme) => {
@@ -26,33 +27,35 @@ export const ThemeDialogContent = () => {
       setTheme(theme);
       dialog.close();
     },
-    [setTheme, dialog],
+    [setTheme, dialog]
   );
 
   const handleHighlight = useCallback(
     (theme: Theme) => {
       setTheme(theme);
     },
-    [setTheme],
+    [setTheme]
   );
 
   return (
     <DialogSearchList
+      emptyText="No matching themes"
+      filterFn={(t, query) =>
+        t.name.toLowerCase().includes(query.toLowerCase())
+      }
+      getKey={(t) => t.name}
       items={THEMES}
-      onSelect={handleSelect}
       onHighlight={handleHighlight}
-      filterFn={(t, query) => t.name.toLowerCase().includes(query.toLowerCase())}
+      onSelect={handleSelect}
+      placeholder="Search themes"
       renderItem={(theme, isSelected) => (
-        <text selectable={false} fg={isSelected ? "black" : "white"}>
+        <text fg={isSelected ? "black" : "white"} selectable={false}>
           {theme.name === originalThemeRef.current.name
             ? "\u0020\u2022\u0020"
             : "\u0020\u0020\u0020"}
           {theme.name}
         </text>
       )}
-      getKey={(t) => t.name}
-      placeholder="Search themes"
-      emptyText="No matching themes"
     />
   );
 };

@@ -1,31 +1,31 @@
 import { TextAttributes } from "@opentui/core";
-import { EmptyBorder } from "../border";
 import { useTheme } from "../../providers/theme";
+import { EmptyBorder } from "../border";
 
-type Props = {
+interface Props {
   message: string;
-};
+}
 
 export function ErrorMessage({ message }: Props) {
   const { colors } = useTheme();
 
   return (
-    <box width="100%" alignItems="center">
+    <box alignItems="center" width="100%">
       <box
         border={["left"]}
         borderColor={colors.error}
-        width="100%"
         customBorderChars={{
           ...EmptyBorder,
           vertical: "┃",
           bottomLeft: "╹",
         }}
+        width="100%"
       >
         <box
+          backgroundColor={colors.surface}
           justifyContent="center"
           paddingX={2}
           paddingY={1}
-          backgroundColor={colors.surface}
           width="100%"
         >
           <text attributes={TextAttributes.DIM}>{message}</text>
@@ -33,4 +33,4 @@ export function ErrorMessage({ message }: Props) {
       </box>
     </box>
   );
-};
+}

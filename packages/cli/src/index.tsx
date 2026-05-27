@@ -14,12 +14,12 @@ const router = createMemoryRouter([
       { index: true, element: <Home /> },
       { path: "sessions/new", element: <NewSession /> },
       { path: "sessions/:id", element: <Session /> },
-    ]
-  }
+    ],
+  },
 ]);
 
 function App() {
-  return <RouterProvider router={router} />
+  return <RouterProvider router={router} />;
 }
 
 const renderer = await createCliRenderer({

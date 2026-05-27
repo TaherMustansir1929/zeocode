@@ -5,45 +5,45 @@ import { DialogSearchList } from "../dialog-search-list";
 
 const AVAILABLE_MODES: ModeType[] = [Mode.BUILD, Mode.PLAN];
 
-type AgentsDialogContentProps = {
-	currentMode: ModeType;
-	onSelectMode: (mode: ModeType) => void;
-};
+interface AgentsDialogContentProps {
+  currentMode: ModeType;
+  onSelectMode: (mode: ModeType) => void;
+}
 
 function getModeLabel(mode: ModeType) {
-	return mode === Mode.PLAN ? "Plan" : "Build";
+  return mode === Mode.PLAN ? "Plan" : "Build";
 }
 
 export const AgentsDialogContent = ({
-	currentMode,
-	onSelectMode,
+  currentMode,
+  onSelectMode,
 }: AgentsDialogContentProps) => {
-	const dialog = useDialog();
+  const dialog = useDialog();
 
-	const handleSelect = useCallback(
-		(nextMode: ModeType) => {
-			onSelectMode(nextMode);
-			dialog.close();
-		},
-		[onSelectMode, dialog],
-	);
+  const handleSelect = useCallback(
+    (nextMode: ModeType) => {
+      onSelectMode(nextMode);
+      dialog.close();
+    },
+    [onSelectMode, dialog]
+  );
 
-	return (
-		<DialogSearchList
-			items={AVAILABLE_MODES}
-			onSelect={handleSelect}
-			filterFn={(item, query) =>
-				getModeLabel(item).toLowerCase().includes(query.toLowerCase())
-			}
-			renderItem={(item, isSelected) => (
-				<text selectable={false} fg={isSelected ? "black" : "white"}>
-					{item === currentMode ? " • " : "   "}
-					{getModeLabel(item)}
-				</text>
-			)}
-			getKey={(item) => item}
-			placeholder="Search agents"
-			emptyText="No matching agents"
-		/>
-	);
+  return (
+    <DialogSearchList
+      emptyText="No matching agents"
+      filterFn={(item, query) =>
+        getModeLabel(item).toLowerCase().includes(query.toLowerCase())
+      }
+      getKey={(item) => item}
+      items={AVAILABLE_MODES}
+      onSelect={handleSelect}
+      placeholder="Search agents"
+      renderItem={(item, isSelected) => (
+        <text fg={isSelected ? "black" : "white"} selectable={false}>
+          {item === currentMode ? " • " : "   "}
+          {getModeLabel(item)}
+        </text>
+      )}
+    />
+  );
 };

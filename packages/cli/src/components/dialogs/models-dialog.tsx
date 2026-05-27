@@ -1,17 +1,16 @@
+import type { SupportedChatModelId } from "@zeocode/shared";
 import { useCallback } from "react";
 import { useDialog } from "../../providers/dialog";
 import { DialogSearchList } from "../dialog-search-list";
-import { Mode } from "@zeocode/database/enums";
-import type { SupportedChatModelId } from "@zeocode/shared";
 
-type ModelsDialogContentProps = {
+interface ModelsDialogContentProps {
   models: SupportedChatModelId[];
   onSelectModel: (modelId: SupportedChatModelId) => void;
-};
+}
 
-export const ModelsDialogContent = ({ 
-  models, 
-  onSelectModel 
+export const ModelsDialogContent = ({
+  models,
+  onSelectModel,
 }: ModelsDialogContentProps) => {
   const dialog = useDialog();
 
@@ -20,22 +19,24 @@ export const ModelsDialogContent = ({
       onSelectModel(modelId);
       dialog.close();
     },
-    [dialog, onSelectModel],
+    [dialog, onSelectModel]
   );
 
   return (
     <DialogSearchList
+      emptyText="No matching models"
+      filterFn={(modelId, query) =>
+        modelId.toLowerCase().includes(query.toLowerCase())
+      }
+      getKey={(modelId) => modelId}
       items={models}
       onSelect={handleSelect}
-      filterFn={(modelId, query) => modelId.toLowerCase().includes(query.toLowerCase())}
+      placeholder="Search models"
       renderItem={(modelId, isSelected) => (
-        <text selectable={false} fg={isSelected ? "black" : "white"}>
+        <text fg={isSelected ? "black" : "white"} selectable={false}>
           {modelId}
         </text>
       )}
-      getKey={(modelId) => modelId}
-      placeholder="Search models"
-      emptyText="No matching models"
     />
   );
 };
